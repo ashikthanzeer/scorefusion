@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JEE Main Analysis Dashboard</title>
+
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- worker URL is set inside script.js -->
+
+</head>
+
+<body>
+<div class="container">
+<div style="display:flex;align-items:center;justify-content:space-between;">
+  <h2>JEE Main Analysis Dashboard</h2>
+  <button id="themeToggle" style="width:auto;padding:8px;font-size:1.2em;">🌙</button>
+</div>
+
+<select id="shift">
+  <option value="">Select Exam Shift</option>
+  <option value="2026-01-24-S1">24 Jan 2026 – Shift 1</option>
+  <option value="2026-01-21-S1">21 Jan 2026 – Shift 1</option>
+</select>
+
+<div class="file-input-wrapper" id="dropZone">
+  <span id="dropText">Drop or click to choose file</span>
+  <input type="file" id="pdfFile" accept=".pdf">
+</div>
+<button id="analyzeBtn">Analyze</button>
+<!-- themeToggle moved to header -->
+
+<div id="resultsSection" style="display:none;">
+  <div id="scoreRingContainer" style="text-align:center; margin-top:20px; display:none; display:flex; justify-content:center; gap:40px; display:flex; justify-content:center; gap:40px;">
+    <div>
+      <canvas id="scoreRing" width="300" height="150"></canvas>
+      <div id="ringText"></div>
+    </div>
+    <div>
+      <canvas id="accuracyRing" width="300" height="150"></canvas>
+    </div>
+  </div>
+
+
+  <table>
+  <thead>
+  <tr>
+    <th>Subject</th>
+    <th>Score</th>
+    <th>Correct</th>
+    <th>Wrong</th>
+    <th>Unattempted</th>
+    <th>Accuracy</th>
+  </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+  </table>
+  <div style="text-align:center; margin-top:12px;">
+    <button id="clearDataBtn" class="btn">Clear data</button>
+  </div>
+</div>
+
+
+<div id="charts" style="margin-top:20px; display:none; width:400px; height:300px;">
+  <canvas id="scoreChart"></canvas>
+</div>
+
+<div id="questionAnalysis" style="margin-top:20px; display:none;">
+  <h3>Question-Level Analysis</h3>
+  <table id="detailTable" style="width:100%;border-collapse:collapse;">
+    <thead><tr><th>Q No</th><th>QID</th><th>Answered</th><th>Correct ID</th><th>Result</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
