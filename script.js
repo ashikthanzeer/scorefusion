@@ -176,12 +176,22 @@ window.addEventListener('DOMContentLoaded', () => {
   const analyzeBtn = document.getElementById("analyzeBtn");
   if (analyzeBtn) {
     analyzeBtn.addEventListener("click", () => {
-      console.log('analyze button clicked');
       try { process(); } catch(e){ console.error('process error',e); }
     });
   }
   const themeBtn = document.getElementById("themeToggle");
   if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
+
+  // Keyboard accessibility for drop zone
+  const dz = document.getElementById('dropZone');
+  if (dz) {
+    dz.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        document.getElementById('pdfFile')?.click();
+      }
+    });
+  }
 });
 
 // file input/dropzone handling
@@ -191,9 +201,11 @@ const dropText = document.getElementById('dropText');
 
 pdfFile.addEventListener('change', () => {
   if (pdfFile.files && pdfFile.files[0]) {
-    dropText.textContent = pdfFile.files[0].name;
+    dropText.textContent = '📎 ' + pdfFile.files[0].name;
+    dropText.style.color = 'var(--success, #10b981)';
   } else {
-    dropText.textContent = 'Drop or click to choose file';
+    dropText.textContent = 'Tap to choose or drag & drop PDF';
+    dropText.style.color = '';
   }
 });
 
@@ -211,7 +223,8 @@ dropZone.addEventListener('drop', e => {
   dropZone.classList.remove('dragover');
   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
     pdfFile.files = e.dataTransfer.files;
-    dropText.textContent = e.dataTransfer.files[0].name;
+    dropText.textContent = '📎 ' + e.dataTransfer.files[0].name;
+    dropText.style.color = 'var(--success, #10b981)';
   }
 });
 
@@ -237,16 +250,27 @@ function toggleTheme() {
 })();
 
 // core logic
+function setAnalyzing(on) {
+  const btn     = document.getElementById('analyzeBtn');
+  const txt     = document.getElementById('analyzeBtnText');
+  const spinner = document.getElementById('analyzeBtnSpinner');
+  if (!btn) return;
+  btn.disabled = on;
+  if (txt)     txt.textContent = on ? 'Analyzing…' : 'Analyze';
+  if (spinner) spinner.hidden  = !on;
+}
+
 async function process() {
-  console.log('process started');
   const shift = document.getElementById("shift").value;
   const file = document.getElementById("pdfFile").files[0];
-  if (!shift || !file) return alert("Select shift and upload PDF");
+  if (!shift || !file) return alert("Please select a shift and upload your PDF.");
 
   const key = ANSWER_KEYS[shift];
   if (!key || Object.keys(key).length === 0)
-    return alert("Answer key missing for this shift");
+    return alert("Answer key missing for this shift.");
 
+  setAnalyzing(true);
+  try {
   const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
 
   let text = "";
@@ -257,6 +281,12 @@ async function process() {
   }
 
   render(calculate(text, key));
+  } catch(err) {
+    console.error('Analysis error:', err);
+    alert('Failed to analyze PDF. Please check the file and try again.');
+  } finally {
+    setAnalyzing(false);
+  }
 }
 
 function calculate(text, key) {
@@ -326,9 +356,10 @@ function render(result){
   const tableBody = document.querySelector('#detailTable tbody');
   tableBody.innerHTML = '';
   result.details.forEach((d,i)=>{
-    const answered = d.attempted ? (d.chosen||d.given||'') : 'No';
-    const resultText = d.correct ? 'Correct' : (d.attempted ? 'Wrong' : 'Unattempted');
-    tableBody.innerHTML += `<tr><td>${i+1}</td><td>${d.qid}</td><td>${answered}</td><td>${d.correctAnswerId}</td><td>${resultText}</td></tr>`;
+    const answered = d.attempted ? (d.chosen||d.given||'') : '—';
+    const resultText = d.correct ? 'Correct' : (d.attempted ? 'Wrong' : 'Skipped');
+    const cls = d.correct ? 'result-correct' : (d.attempted ? 'result-wrong' : 'result-skip');
+    tableBody.innerHTML += `<tr><td>${i+1}</td><td>${d.qid}</td><td>${answered}</td><td>${d.correctAnswerId}</td><td class="${cls}">${resultText}</td></tr>`;
   });
   analysisDiv.style.display = 'block';
   document.getElementById('charts').style.display = 'block';
@@ -340,51 +371,75 @@ function drawRing(res) {
   const total = res.Physics.s + res.Chemistry.s + res.Mathematics.s;
   const max = 75 * 4;
   const pct = Math.round((total / max) * 100);
-  const ringCanvas = document.getElementById('scoreRing');
-  const ctx = ringCanvas.getContext('2d');
-  const cw = ringCanvas.width, ch = ringCanvas.height;
-  const radius = cw/2 - 15;
-  const themeColor = document.body.classList.contains('dark') ? '#e0e0e0' : '#000';
-  function animateRing(context, targetPct, color, headerText, displayText, suffix='', footerText='') {
-    let current = 0;
-    function step() {
-      context.clearRect(0,0,cw,ch);
-      context.lineWidth = 18;
-      context.beginPath();
-      context.arc(cw/2, ch, radius, Math.PI, 0, false);
-      context.strokeStyle = '#ddd';
-      context.stroke();
-      context.beginPath();
-      context.arc(cw/2, ch, radius, Math.PI, Math.PI + Math.PI * (current/100), false);
-      context.strokeStyle = color;
-      context.stroke();
-      const headerColor = document.body.classList.contains('dark') ? '#bbb' : '#444';
-      context.font = '14px system-ui';
-      context.fillStyle = headerColor;
-      context.textAlign = 'center';
-      context.fillText(headerText, cw/2, ch - radius/1.5);
-      context.font = 'bold 24px system-ui';
-      context.fillStyle = themeColor;
-      context.fillText((displayText instanceof Function ? displayText(current) : displayText) + suffix, cw/2, ch - radius/3);
-      if (footerText) {
-        context.font = '14px system-ui';
-        context.fillStyle = headerColor;
-        context.fillText(footerText, cw/2, ch - radius/6);
-      }
-      if (current < targetPct) {
-        current += 2;
-        requestAnimationFrame(step);
-      }
-    }
-    step();
-  }
-  animateRing(ctx, pct, '#3b82f6', 'Total marks:', () => total, '', '/300');
   const correctTotal = res.Physics.c + res.Chemistry.c + res.Mathematics.c;
   const attemptedTotal = correctTotal + res.Physics.w + res.Chemistry.w + res.Mathematics.w;
   const accPct = attemptedTotal ? Math.round((correctTotal / attemptedTotal) * 100) : 0;
-  const arCanvas = document.getElementById('accuracyRing');
-  const actx = arCanvas.getContext('2d');
-  animateRing(actx, accPct, '#10b981', 'Accuracy:', () => accPct, '%');
+
+  function setupCanvas(canvas) {
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.parentElement.clientWidth || 200;
+    const cssH = Math.round(cssW * 0.55);
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return { ctx, cw: cssW, ch: cssH };
+  }
+
+  const isDark = document.body.classList.contains('dark');
+  const trackColor  = isDark ? '#2e3347' : '#dde3ee';
+  const themeColor  = isDark ? '#e2e8f0' : '#1a1a2e';
+  const headerColor = isDark ? '#94a3b8' : '#64748b';
+
+  function animateRing(canvas, targetPct, color, headerText, displayText, suffix='', footerText='') {
+    const { ctx, cw, ch } = setupCanvas(canvas);
+    const radius = cw / 2 - Math.max(10, cw * 0.07);
+    const lw = Math.max(8, cw * 0.06);
+    const labelSize = Math.max(10, cw * 0.065);
+    const valueSize = Math.max(16, cw * 0.12);
+    let current = 0;
+    let rafId;
+    function step() {
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.lineWidth = lw;
+      // Track
+      ctx.beginPath();
+      ctx.arc(cw / 2, ch, radius, Math.PI, 0, false);
+      ctx.strokeStyle = trackColor;
+      ctx.stroke();
+      // Fill
+      ctx.beginPath();
+      ctx.arc(cw / 2, ch, radius, Math.PI, Math.PI + Math.PI * (current / 100), false);
+      ctx.strokeStyle = color;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      // Header label
+      ctx.font = `${labelSize}px system-ui`;
+      ctx.fillStyle = headerColor;
+      ctx.textAlign = 'center';
+      ctx.fillText(headerText, cw / 2, ch - radius / 1.5);
+      // Value
+      ctx.font = `bold ${valueSize}px system-ui`;
+      ctx.fillStyle = themeColor;
+      ctx.fillText((displayText instanceof Function ? displayText(current) : displayText) + suffix, cw / 2, ch - radius / 3.2);
+      if (footerText) {
+        ctx.font = `${labelSize}px system-ui`;
+        ctx.fillStyle = headerColor;
+        ctx.fillText(footerText, cw / 2, ch - radius / 8);
+      }
+      if (current < targetPct) {
+        current = Math.min(current + 2, targetPct);
+        rafId = requestAnimationFrame(step);
+      }
+    }
+    if (rafId) cancelAnimationFrame(rafId);
+    step();
+  }
+
+  animateRing(document.getElementById('scoreRing'),    pct,    '#3b82f6', 'Total marks:', () => total, '', '/300');
+  animateRing(document.getElementById('accuracyRing'), accPct, '#10b981', 'Accuracy:',    () => accPct, '%');
 }
 
 function drawChart(res) {

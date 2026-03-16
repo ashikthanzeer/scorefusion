@@ -2,83 +2,127 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f6fb" id="themeColorMeta">
 <title>JEE Main Analysis Dashboard</title>
-
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="icon" type="image/png" href="favicon.png">
-<!-- worker URL is set inside script.js -->
-
 </head>
-
 <body>
+
 <div class="container">
-<div style="display:flex;align-items:center;justify-content:space-between;">
-  <h2>JEE Main Analysis Dashboard</h2>
-  <button id="themeToggle" style="width:auto;padding:8px;font-size:1.2em;">🌙</button>
-</div>
 
-<select id="shift">
-  <option value="">Select Exam Shift</option>
-  <option value="2026-01-24-S1">24 Jan 2026 – Shift 1</option>
-  <option value="2026-01-21-S1">21 Jan 2026 – Shift 1</option>
-</select>
-
-<div class="file-input-wrapper" id="dropZone">
-  <span id="dropText">Drop or click to choose file</span>
-  <input type="file" id="pdfFile" accept=".pdf">
-</div>
-<button id="analyzeBtn">Analyze</button>
-<!-- themeToggle moved to header -->
-
-<div id="resultsSection" style="display:none;">
-  <div id="scoreRingContainer" style="text-align:center; margin-top:20px; display:none; display:flex; justify-content:center; gap:40px; display:flex; justify-content:center; gap:40px;">
-    <div>
-      <canvas id="scoreRing" width="300" height="150"></canvas>
-      <div id="ringText"></div>
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <div class="logo" aria-hidden="true">📊</div>
+      <div class="header-text">
+        <h1>JEE Main</h1>
+        <p class="subtitle">Analysis Dashboard</p>
+      </div>
     </div>
-    <div>
-      <canvas id="accuracyRing" width="300" height="150"></canvas>
+    <button id="themeToggle" class="icon-btn" aria-label="Toggle dark/light mode">🌙</button>
+  </header>
+
+  <!-- Controls -->
+  <section class="card" aria-label="Exam controls">
+    <label class="field-label" for="shift">Exam Shift</label>
+    <div class="select-wrap">
+      <select id="shift">
+        <option value="">Select Exam Shift</option>
+        <option value="2026-01-24-S1">24 Jan 2026 – Shift 1</option>
+        <option value="2026-01-21-S1">21 Jan 2026 – Shift 1</option>
+      </select>
+      <span class="select-arrow" aria-hidden="true">▾</span>
+    </div>
+
+    <label class="field-label" style="margin-top:14px;" for="pdfFile">Response Sheet (PDF)</label>
+    <div class="drop-zone" id="dropZone" role="button" tabindex="0"
+         aria-label="Click or drag to upload PDF response sheet">
+      <div class="drop-icon" aria-hidden="true">📄</div>
+      <span id="dropText">Tap to choose or drag &amp; drop PDF</span>
+      <input type="file" id="pdfFile" accept=".pdf" aria-label="Upload PDF">
+    </div>
+  </section>
+
+  <!-- Analyze -->
+  <button id="analyzeBtn" class="btn-primary">
+    <span id="analyzeBtnText">Analyze</span>
+    <span id="analyzeBtnSpinner" class="spinner" aria-hidden="true" hidden></span>
+  </button>
+
+  <!-- Results -->
+  <div id="resultsSection" style="display:none;">
+
+    <!-- Score Rings -->
+    <div id="scoreRingContainer" class="rings-row">
+      <div class="ring-card">
+        <canvas id="scoreRing" width="200" height="110"
+                aria-label="Score ring chart"></canvas>
+        <div id="ringText" class="ring-text"></div>
+      </div>
+      <div class="ring-card">
+        <canvas id="accuracyRing" width="200" height="110"
+                aria-label="Accuracy ring chart"></canvas>
+        <div class="ring-text" id="accuracyText"></div>
+      </div>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="table-scroll" role="region" aria-label="Subject-wise score summary">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Score</th>
+            <th>✔</th>
+            <th>✘</th>
+            <th>–</th>
+            <th>Acc.</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="center-row">
+      <button id="clearDataBtn" class="btn-danger">🗑 Clear data</button>
     </div>
   </div>
 
-
-  <table>
-  <thead>
-  <tr>
-    <th>Subject</th>
-    <th>Score</th>
-    <th>Correct</th>
-    <th>Wrong</th>
-    <th>Unattempted</th>
-    <th>Accuracy</th>
-  </tr>
-  </thead>
-  <tbody id="tbody"></tbody>
-  </table>
-  <div style="text-align:center; margin-top:12px;">
-    <button id="clearDataBtn" class="btn">Clear data</button>
+  <!-- Pie Chart -->
+  <div id="charts" class="chart-card" style="display:none;">
+    <p class="chart-title">Score Distribution</p>
+    <div class="chart-wrap">
+      <canvas id="scoreChart" aria-label="Score distribution pie chart"></canvas>
+    </div>
   </div>
-</div>
 
+  <!-- Question-Level Analysis -->
+  <div id="questionAnalysis" style="display:none;">
+    <h2 class="section-heading">Question-Level Analysis</h2>
+    <div class="table-scroll" role="region" aria-label="Question-by-question analysis">
+      <table id="detailTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>QID</th>
+            <th>Answered</th>
+            <th>Correct</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 
-<div id="charts" style="margin-top:20px; display:none; width:400px; height:300px;">
-  <canvas id="scoreChart"></canvas>
-</div>
-
-<div id="questionAnalysis" style="margin-top:20px; display:none;">
-  <h3>Question-Level Analysis</h3>
-  <table id="detailTable" style="width:100%;border-collapse:collapse;">
-    <thead><tr><th>Q No</th><th>QID</th><th>Answered</th><th>Correct ID</th><th>Result</th></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
-</div>
+</div><!-- /.container -->
 
 <script src="script.js"></script>
 </body>
 </html>
-
-
-
