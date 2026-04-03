@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f6fb" id="themeColorMeta">
+<title>KEAM Score Calculator</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="page-header">
+    <div class="header-left">
+      <div class="logo" aria-hidden="true">
+        <img src="assets/keam-logo.png" alt="" class="header-logo-image">
+      </div>
+      <div class="header-text">
+        <h1>KEAM Score Calculator</h1>
+        <p class="subtitle">Analysis Dashboard</p>
+      </div>
+    </div>
+    <button id="themeToggle" class="icon-btn" aria-label="Toggle dark/light mode">&#127769;</button>
+  </header>
+
+  <section class="card" aria-label="KEAM controls">
+    <label class="field-label" for="shift">Exam Shift</label>
+    <div class="select-wrap">
+      <select id="shift"></select>
+      <span class="select-arrow" aria-hidden="true">&#9662;</span>
+    </div>
+
+    <div class="keam-meta" aria-label="Exam structure summary">
+      <span class="meta-pill">150 Questions</span>
+      <span class="meta-pill">Maths 1-75</span>
+      <span class="meta-pill">Physics 76-120</span>
+      <span class="meta-pill">Chemistry 121-150</span>
+    </div>
+
+    <label class="field-label" style="margin-top:14px;" for="responseInput">Student Responses</label>
+    <div class="textarea-wrap">
+      <textarea
+        id="responseInput"
+        class="answer-textarea"
+        placeholder="1	C&#10;2	D&#10;3	B&#10;Question No.	Answer&#10;76	A"
+        aria-label="Paste student responses"
+      ></textarea>
+      <p class="helper-text">
+        Enter one response per line. Formats like <code>1 C</code>, <code>Question No: 1: A</code>, and <code>N</code> for skipped questions are accepted. Accidental <code>Question No. Answer</code> header rows are ignored automatically.
+      </p>
+    </div>
+  </section>
+
+  <button id="analyzeBtn" class="btn-primary">
+    <span id="analyzeBtnText">Analyze</span>
+    <span id="analyzeBtnSpinner" class="spinner" aria-hidden="true" hidden></span>
+  </button>
+
+  <div id="parseBanner" class="info-banner" style="display:none;"></div>
+
+  <div id="resultsSection" style="display:none;">
+    <div id="scoreRingContainer" class="rings-row">
+      <div class="ring-card">
+        <canvas id="scoreRing" width="200" height="110" aria-label="Score ring chart"></canvas>
+      </div>
+      <div class="ring-card">
+        <canvas id="accuracyRing" width="200" height="110" aria-label="Accuracy ring chart"></canvas>
+      </div>
+    </div>
+
+    <div class="table-scroll" role="region" aria-label="Subject-wise score summary">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Score</th>
+            <th>Correct</th>
+            <th>Wrong</th>
+            <th>Skipped</th>
+            <th>Acc.</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="center-row">
+      <button id="clearDataBtn" class="btn-danger">Clear data</button>
+    </div>
+  </div>
+
+  <div id="charts" class="chart-card" style="display:none;">
+    <p class="chart-title">Score Distribution</p>
+    <div class="chart-wrap">
+      <canvas id="scoreChart" aria-label="Score distribution pie chart"></canvas>
+    </div>
+  </div>
+
+  <div id="questionAnalysis" style="display:none;">
+    <h2 class="section-heading">Question-Level Analysis</h2>
+    <div class="table-scroll" role="region" aria-label="Question-by-question analysis">
+      <table id="detailTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Subject</th>
+            <th>Answered</th>
+            <th>Correct</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="keam-script.js"></script>
+</body>
+</html>
