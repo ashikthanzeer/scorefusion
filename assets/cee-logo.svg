@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-labelledby="title desc">
+  <title id="title">CEE logo badge</title>
+  <desc id="desc">Stylized Commissioner for Entrance Examinations badge</desc>
+  <defs>
+    <linearGradient id="ceeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+  </defs>
+  <rect width="220" height="220" rx="52" fill="url(#ceeBg)"/>
+  <circle cx="110" cy="82" r="44" fill="#fffdf4" opacity="0.98"/>
+  <path d="M85 102V62h20c17 0 27 8 27 20s-10 20-27 20H85Zm15-12h7c7 0 11-3 11-8s-4-8-11-8h-7v16Z" fill="#14532d"/>
+  <path d="M110 46 118 62 136 65 123 78 126 96 110 88 94 96 97 78 84 65 102 62Z" fill="#f59e0b"/>
+  <text x="110" y="150" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="50" font-weight="800" fill="#ffffff">CEE</text>
+  <text x="110" y="180" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" letter-spacing="1.5" fill="#dcfce7">COMMISSIONER FOR ENTRANCE EXAMINATIONS</text>
+</svg>
