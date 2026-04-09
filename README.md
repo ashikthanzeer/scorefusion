@@ -1,4 +1,4 @@
-# 🎯 Score Calculator
+# 🎯 ScoreFusion
 
 A modern web-based **exam score analysis tool** for **JEE Main** and **KEAM**, designed to help students evaluate their performance with deep insights and visual analytics.
 
