@@ -297,6 +297,10 @@ function applyTheme(theme) {
   localStorage.setItem('theme', theme);
   const btn = document.getElementById('themeToggle');
   if (btn) btn.innerText = theme === 'dark' ? '☀️' : '🌙';
+
+  const themeMeta = document.getElementById('themeColorMeta');
+  if (themeMeta) themeMeta.setAttribute('content', theme === 'dark' ? '#0f1117' : '#f4f6fb');
+
   if (_lastResult) drawRing(_lastResult);
 }
 function toggleTheme() {

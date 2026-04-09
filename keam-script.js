@@ -83,6 +83,9 @@ function applyTheme(theme) {
   const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) themeToggle.innerHTML = theme === "dark" ? "&#9728;&#65039;" : "&#127769;";
 
+  const themeMeta = document.getElementById("themeColorMeta");
+  if (themeMeta) themeMeta.setAttribute("content", theme === "dark" ? "#0f1117" : "#f4f6fb");
+
   if (lastResult) {
     drawRing(lastResult.scores);
     drawChart(lastResult.scores);
