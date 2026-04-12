@@ -339,10 +339,20 @@ function renderSummaryTable(scores) {
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
 
+  let totalScore = 0;
+  let totalCorrect = 0;
+  let totalWrong = 0;
+  let totalSkipped = 0;
+
   SUBJECT_ORDER.forEach((subject) => {
     const entry = scores[subject];
     const attempted = entry.c + entry.w;
     const accuracy = attempted ? Math.round((entry.c / attempted) * 100) : 0;
+
+    totalScore += entry.s;
+    totalCorrect += entry.c;
+    totalWrong += entry.w;
+    totalSkipped += entry.u;
 
     tbody.innerHTML += `
       <tr>
@@ -355,6 +365,21 @@ function renderSummaryTable(scores) {
       </tr>
     `;
   });
+
+  // Add Total row with bold text
+  const totalAttempted = totalCorrect + totalWrong;
+  const totalAccuracy = totalAttempted ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+
+  tbody.innerHTML += `
+    <tr style="font-weight: bold;">
+      <td><strong>Total</strong></td>
+      <td><strong>${totalScore}</strong></td>
+      <td><strong>${totalCorrect}</strong></td>
+      <td><strong>${totalWrong}</strong></td>
+      <td><strong>${totalSkipped}</strong></td>
+      <td><strong>${totalAccuracy}%</strong></td>
+    </tr>
+  `;
 }
 
 function renderQuestionTable(details) {
@@ -422,6 +447,7 @@ function exportKeamPdf() {
   const totalScore = subjectAnalytics.reduce((sum, item) => sum + item.score, 0);
   const totalCorrect = subjectAnalytics.reduce((sum, item) => sum + item.correct, 0);
   const totalWrong = subjectAnalytics.reduce((sum, item) => sum + item.wrong, 0);
+  const totalSkipped = subjectAnalytics.reduce((sum, item) => sum + item.skipped, 0);
   const totalAttempted = totalCorrect + totalWrong;
   const scoredQuestionCount = subjectAnalytics.reduce((sum, item) => sum + item.questionCount, 0);
   const maxScore = scoredQuestionCount * MARKS_CORRECT;
@@ -433,7 +459,7 @@ function exportKeamPdf() {
       lastResult.shiftLabel || "KEAM"
     ];
 
-    window.PdfExportUtils.addTitle(pdf, "KEAM Score Analysis", subtitleLines);
+    window.PdfExportUtils.addTitle(pdf, "KEAM Score Analysis - ScoreFusion", subtitleLines);
 
     window.PdfExportUtils.addSection(pdf, "Summary");
     window.PdfExportUtils.addKeyValueLines(pdf, [
@@ -442,18 +468,39 @@ function exportKeamPdf() {
     ]);
 
     window.PdfExportUtils.addSection(pdf, "Subject-wise Score Analysis");
+    
+    // Build table rows with detailed breakdown
+    const tableRows = subjectAnalytics.map((item) => ([
+      item.subject,
+      String(item.score),
+      String(item.correct),
+      String(item.wrong),
+      String(item.skipped),
+      `${item.accuracy}%`
+    ]));
+    
+    // Add total row with bold styling
+    tableRows.push([
+      "Total",
+      String(totalScore),
+      String(totalCorrect),
+      String(totalWrong),
+      String(totalSkipped),
+      `${accuracy}%`
+    ]);
+
     window.PdfExportUtils.addTable(
       pdf,
       [
-        { label: "Subject", width: 0.4 },
-        { label: "Score", width: 0.3 },
-        { label: "Accuracy", width: 0.3 }
+        { label: "Subject", width: 0.25 },
+        { label: "Score", width: 0.15 },
+        { label: "Correct", width: 0.15 },
+        { label: "Wrong", width: 0.15 },
+        { label: "Skipped", width: 0.15 },
+        { label: "Acc.", width: 0.15 }
       ],
-      subjectAnalytics.map((item) => ([
-        item.subject,
-        `${item.score}/${item.maxScore}`,
-        `${item.accuracy}%`
-      ]))
+      tableRows,
+      { boldLastRow: true }
     );
 
     const shiftToken = (lastResult.shiftId || "keam").replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase();

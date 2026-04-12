@@ -519,6 +519,7 @@ function exportJeePdf() {
   const totalScore = subjectAnalytics.reduce((sum, item) => sum + item.score, 0);
   const totalCorrect = subjectAnalytics.reduce((sum, item) => sum + item.correct, 0);
   const totalWrong = subjectAnalytics.reduce((sum, item) => sum + item.wrong, 0);
+  const totalSkipped = subjectAnalytics.reduce((sum, item) => sum + item.skipped, 0);
   const totalAttempted = totalCorrect + totalWrong;
   const maxScore = normalized.totalQuestions * 4;
   const accuracy = totalAttempted ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
@@ -529,7 +530,7 @@ function exportJeePdf() {
       normalized.shiftLabel || 'JEE Main'
     ];
 
-    window.PdfExportUtils.addTitle(pdf, 'JEE Main Score Analysis', subtitleLines);
+    window.PdfExportUtils.addTitle(pdf, 'JEE Main Score Analysis - ScoreFusion', subtitleLines);
 
     window.PdfExportUtils.addSection(pdf, 'Summary');
     window.PdfExportUtils.addKeyValueLines(pdf, [
@@ -538,18 +539,39 @@ function exportJeePdf() {
     ]);
 
     window.PdfExportUtils.addSection(pdf, 'Subject-wise Score Analysis');
+    
+    // Build table rows with detailed breakdown
+    const tableRows = subjectAnalytics.map((item) => ([
+      item.subject,
+      String(item.score),
+      String(item.correct),
+      String(item.wrong),
+      String(item.skipped),
+      `${item.accuracy}%`
+    ]));
+    
+    // Add total row with bold styling
+    tableRows.push([
+      "Total",
+      String(totalScore),
+      String(totalCorrect),
+      String(totalWrong),
+      String(totalSkipped),
+      `${accuracy}%`
+    ]);
+
     window.PdfExportUtils.addTable(
       pdf,
       [
-        { label: 'Subject', width: 0.4 },
-        { label: 'Score', width: 0.3 },
-        { label: 'Accuracy', width: 0.3 }
+        { label: 'Subject', width: 0.25 },
+        { label: 'Score', width: 0.15 },
+        { label: 'Correct', width: 0.15 },
+        { label: 'Wrong', width: 0.15 },
+        { label: 'Skipped', width: 0.15 },
+        { label: 'Acc.', width: 0.15 }
       ],
-      subjectAnalytics.map((item) => ([
-        item.subject,
-        `${item.score}/${item.maxScore}`,
-        `${item.accuracy}%`
-      ]))
+      tableRows,
+      { boldLastRow: true }
     );
 
     const shiftToken = (normalized.shiftId || 'jee-main').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase();
@@ -571,14 +593,35 @@ function render(result) {
   const res   = normalized.scores;
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
+
+  let totalScore = 0;
+  let totalCorrect = 0;
+  let totalWrong = 0;
+  let totalSkipped = 0;
+
   ["Physics","Chemistry","Mathematics"].forEach(s => {
     const attempted = res[s].c + res[s].w;
     const acc = attempted ? Math.round(res[s].c / attempted * 100) : 0;
+    
+    totalScore += res[s].s;
+    totalCorrect += res[s].c;
+    totalWrong += res[s].w;
+    totalSkipped += res[s].u;
+
     tbody.innerHTML += `<tr>
       <td>${s}</td><td>${res[s].s}</td><td>${res[s].c}</td>
       <td>${res[s].w}</td><td>${res[s].u}</td><td>${acc}%</td>
     </tr>`;
   });
+
+  // Add Total row with bold text
+  const totalAttempted = totalCorrect + totalWrong;
+  const totalAccuracy = totalAttempted ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+
+  tbody.innerHTML += `<tr style="font-weight: bold;">
+    <td><strong>Total</strong></td><td><strong>${totalScore}</strong></td><td><strong>${totalCorrect}</strong></td>
+    <td><strong>${totalWrong}</strong></td><td><strong>${totalSkipped}</strong></td><td><strong>${totalAccuracy}%</strong></td>
+  </tr>`;
 
   drawRing(normalized);
   drawChart(res);

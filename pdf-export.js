@@ -104,13 +104,14 @@
     pdf.cursorY += 1.5;
   }
 
-  function addTable(pdf, columns, rows) {
+  function addTable(pdf, columns, rows, options) {
     const tableWidth = pdf.pageWidth - (pdf.margin * 2);
     const columnWidths = columns.map((column) => tableWidth * column.width);
     const rowPadding = 2.5;
     const fontSize = 9;
+    const boldLastRow = options?.boldLastRow || false;
 
-    function renderRow(row, options) {
+    function renderRow(row, rowOptions) {
       const cellLines = row.map((cell, index) => (
         pdf.doc.splitTextToSize(String(cell), Math.max(columnWidths[index] - (rowPadding * 2), 10))
       ));
@@ -119,15 +120,15 @@
 
       let cursorX = pdf.margin;
       pdf.doc.setDrawColor(220, 226, 236);
-      pdf.doc.setFillColor(...(options.fillColor || [255, 255, 255]));
-      pdf.doc.rect(pdf.margin, pdf.cursorY, tableWidth, rowHeight, options.fill ? "FD" : "S");
+      pdf.doc.setFillColor(...(rowOptions.fillColor || [255, 255, 255]));
+      pdf.doc.rect(pdf.margin, pdf.cursorY, tableWidth, rowHeight, rowOptions.fill ? "FD" : "S");
 
       row.forEach((cell, index) => {
         if (index > 0) {
           pdf.doc.line(cursorX, pdf.cursorY, cursorX, pdf.cursorY + rowHeight);
         }
 
-        pdf.doc.setFont("helvetica", options.bold ? "bold" : "normal");
+        pdf.doc.setFont("helvetica", rowOptions.bold ? "bold" : "normal");
         pdf.doc.setFontSize(fontSize);
         const textLines = cellLines[index];
         let textY = pdf.cursorY + rowPadding + 3;
@@ -142,7 +143,10 @@
     }
 
     renderRow(columns.map((column) => column.label), { bold: true, fill: true, fillColor: [241, 245, 249] });
-    rows.forEach((row) => renderRow(row, { bold: false, fill: false }));
+    rows.forEach((row, index) => {
+      const isLastRow = boldLastRow && index === rows.length - 1;
+      renderRow(row, { bold: isLastRow, fill: false });
+    });
     pdf.cursorY += 4;
   }
 
