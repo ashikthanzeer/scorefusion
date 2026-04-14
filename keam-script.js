@@ -1,9 +1,14 @@
 const SUBJECT_ORDER = ["Mathematics", "Physics", "Chemistry"];
 const SUBJECT_RANGES = [
-  { name: "Mathematics", start: 1, end: 75 },
-  { name: "Physics", start: 76, end: 120 },
-  { name: "Chemistry", start: 121, end: 150 }
+  { name: "Mathematics", start: 1, end: 75, totalQuestions: 75 },
+  { name: "Physics", start: 76, end: 120, totalQuestions: 45 },
+  { name: "Chemistry", start: 121, end: 150, totalQuestions: 30 }
 ];
+const SUBJECT_TOTAL_QUESTIONS = {
+  "Mathematics": 75,
+  "Physics": 45,
+  "Chemistry": 30
+};
 const TOTAL_QUESTIONS = 150;
 const MARKS_CORRECT = 4;
 const MARKS_WRONG = -1;
@@ -226,6 +231,15 @@ function calculateResult(studentAnswers, shiftConfig) {
   const answerKey = shiftConfig.answers;
   const cancelledQuestions = new Set(shiftConfig.cancelledQuestions || []);
 
+  // First pass: track cancelled questions per subject
+  for (let questionNo = 1; questionNo <= TOTAL_QUESTIONS; questionNo += 1) {
+    const subject = getSubjectByQuestion(questionNo);
+    const isCancelled = cancelledQuestions.has(questionNo);
+    if (isCancelled) {
+      scores[subject].cancelled += 1;
+    }
+  }
+
   for (let questionNo = 1; questionNo <= TOTAL_QUESTIONS; questionNo += 1) {
     const subject = getSubjectByQuestion(questionNo);
     const isCancelled = cancelledQuestions.has(questionNo);
@@ -271,6 +285,22 @@ function calculateResult(studentAnswers, shiftConfig) {
     });
   }
 
+  // Second pass: calculate normalized scores and bonuses
+  SUBJECT_ORDER.forEach((subject) => {
+    const entry = scores[subject];
+    const totalQuestionsInSubject = SUBJECT_TOTAL_QUESTIONS[subject];
+    const nonCancelledQuestions = totalQuestionsInSubject - entry.cancelled;
+    
+    if (nonCancelledQuestions > 0) {
+      const normalizationFactor = totalQuestionsInSubject / nonCancelledQuestions;
+      entry.normalized = entry.s * normalizationFactor;
+      entry.bonus = entry.normalized - entry.s;
+    } else {
+      entry.normalized = entry.s;
+      entry.bonus = 0;
+    }
+  });
+
   return {
     scores,
     details,
@@ -282,9 +312,9 @@ function calculateResult(studentAnswers, shiftConfig) {
 
 function createBlankScores() {
   return {
-    Mathematics: { c: 0, w: 0, u: 0, s: 0 },
-    Physics: { c: 0, w: 0, u: 0, s: 0 },
-    Chemistry: { c: 0, w: 0, u: 0, s: 0 }
+    Mathematics: { c: 0, w: 0, u: 0, s: 0, cancelled: 0, normalized: 0, bonus: 0 },
+    Physics: { c: 0, w: 0, u: 0, s: 0, cancelled: 0, normalized: 0, bonus: 0 },
+    Chemistry: { c: 0, w: 0, u: 0, s: 0, cancelled: 0, normalized: 0, bonus: 0 }
   };
 }
 
@@ -339,7 +369,9 @@ function renderSummaryTable(scores) {
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
 
-  let totalScore = 0;
+  let totalRawScore = 0;
+  let totalNormalizedScore = 0;
+  let totalBonus = 0;
   let totalCorrect = 0;
   let totalWrong = 0;
   let totalSkipped = 0;
@@ -348,8 +380,13 @@ function renderSummaryTable(scores) {
     const entry = scores[subject];
     const attempted = entry.c + entry.w;
     const accuracy = attempted ? Math.round((entry.c / attempted) * 100) : 0;
+    const roundedScore = Math.round(entry.s);
+    const roundedNormalized = Math.round(entry.normalized ?? entry.s);
+    const roundedBonus = Math.round(entry.bonus ?? 0);
 
-    totalScore += entry.s;
+    totalRawScore += entry.s;
+    totalNormalizedScore += (entry.normalized ?? entry.s);
+    totalBonus += (entry.bonus ?? 0);
     totalCorrect += entry.c;
     totalWrong += entry.w;
     totalSkipped += entry.u;
@@ -357,7 +394,9 @@ function renderSummaryTable(scores) {
     tbody.innerHTML += `
       <tr>
         <td>${subject}</td>
-        <td>${entry.s}</td>
+        <td>${roundedScore}</td>
+        <td>${roundedBonus}</td>
+        <td>${roundedNormalized}</td>
         <td>${entry.c}</td>
         <td>${entry.w}</td>
         <td>${entry.u}</td>
@@ -369,11 +408,16 @@ function renderSummaryTable(scores) {
   // Add Total row with bold text
   const totalAttempted = totalCorrect + totalWrong;
   const totalAccuracy = totalAttempted ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+  const roundedTotalRaw = Math.round(totalRawScore);
+  const roundedTotalNormalized = Math.round(totalNormalizedScore);
+  const roundedTotalBonus = Math.round(totalBonus);
 
   tbody.innerHTML += `
     <tr style="font-weight: bold;">
       <td><strong>Total</strong></td>
-      <td><strong>${totalScore}</strong></td>
+      <td><strong>${roundedTotalRaw}</strong></td>
+      <td><strong>${roundedTotalBonus}</strong></td>
+      <td><strong>${roundedTotalNormalized}</strong></td>
       <td><strong>${totalCorrect}</strong></td>
       <td><strong>${totalWrong}</strong></td>
       <td><strong>${totalSkipped}</strong></td>
@@ -409,17 +453,21 @@ function renderQuestionTable(details) {
 
 function getKeamSubjectAnalytics(result) {
   return SUBJECT_ORDER.map((subject) => {
-    const entry = result.scores?.[subject] || { c: 0, w: 0, u: 0, s: 0 };
+    const entry = result.scores?.[subject] || { c: 0, w: 0, u: 0, s: 0, normalized: 0, bonus: 0, cancelled: 0 };
     const questionCount = result.details?.filter((detail) => detail.subject === subject && !detail.cancelled).length
       || (entry.c + entry.w + entry.u);
     const attempted = entry.c + entry.w;
     const accuracy = attempted ? Math.round((entry.c / attempted) * 100) : 0;
     const attemptRate = questionCount ? Math.round((attempted / questionCount) * 100) : 0;
-    const maxScore = questionCount * MARKS_CORRECT;
+    const normalizedScore = Math.round(entry.normalized ?? entry.s);
+    const bonus = Math.round(entry.bonus ?? 0);
+    const rawScore = Math.round(entry.s);
 
     return {
       subject,
-      score: entry.s,
+      score: rawScore,
+      normalized: normalizedScore,
+      bonus: bonus,
       correct: entry.c,
       wrong: entry.w,
       skipped: entry.u,
@@ -427,7 +475,7 @@ function getKeamSubjectAnalytics(result) {
       accuracy,
       attemptRate,
       questionCount,
-      maxScore
+      maxScore: questionCount * MARKS_CORRECT
     };
   });
 }
@@ -445,6 +493,8 @@ function exportKeamPdf() {
 
   const subjectAnalytics = getKeamSubjectAnalytics(lastResult);
   const totalScore = subjectAnalytics.reduce((sum, item) => sum + item.score, 0);
+  const totalNormalizedScore = subjectAnalytics.reduce((sum, item) => sum + item.normalized, 0);
+  const totalBonus = subjectAnalytics.reduce((sum, item) => sum + item.bonus, 0);
   const totalCorrect = subjectAnalytics.reduce((sum, item) => sum + item.correct, 0);
   const totalWrong = subjectAnalytics.reduce((sum, item) => sum + item.wrong, 0);
   const totalSkipped = subjectAnalytics.reduce((sum, item) => sum + item.skipped, 0);
@@ -463,16 +513,18 @@ function exportKeamPdf() {
 
     window.PdfExportUtils.addSection(pdf, "Summary");
     window.PdfExportUtils.addKeyValueLines(pdf, [
-      { label: "Total Score", value: `${totalScore} / ${maxScore}` },
+      { label: "Total Normalized Score", value: `${Math.round(totalNormalizedScore)}` },
       { label: "Total Accuracy", value: `${accuracy}%` }
     ]);
 
     window.PdfExportUtils.addSection(pdf, "Subject-wise Score Analysis");
     
-    // Build table rows with detailed breakdown
+    // Build table rows with detailed breakdown - including normalized scores and bonus
     const tableRows = subjectAnalytics.map((item) => ([
       item.subject,
       String(item.score),
+      String(item.bonus),
+      String(item.normalized),
       String(item.correct),
       String(item.wrong),
       String(item.skipped),
@@ -483,6 +535,8 @@ function exportKeamPdf() {
     tableRows.push([
       "Total",
       String(totalScore),
+      String(Math.round(totalBonus)),
+      String(Math.round(totalNormalizedScore)),
       String(totalCorrect),
       String(totalWrong),
       String(totalSkipped),
@@ -492,12 +546,14 @@ function exportKeamPdf() {
     window.PdfExportUtils.addTable(
       pdf,
       [
-        { label: "Subject", width: 0.25 },
-        { label: "Score", width: 0.15 },
-        { label: "Correct", width: 0.15 },
-        { label: "Wrong", width: 0.15 },
-        { label: "Skipped", width: 0.15 },
-        { label: "Acc.", width: 0.15 }
+        { label: "Subject", width: 0.17 },
+        { label: "Score", width: 0.12 },
+        { label: "Bonus", width: 0.12 },
+        { label: "Norm. Score", width: 0.15 },
+        { label: "Correct", width: 0.12 },
+        { label: "Wrong", width: 0.12 },
+        { label: "Skipped", width: 0.12 },
+        { label: "Acc.", width: 0.08 }
       ],
       tableRows,
       { boldLastRow: true }
@@ -512,9 +568,9 @@ function exportKeamPdf() {
 }
 
 function drawRing(scores) {
-  const total = SUBJECT_ORDER.reduce((sum, subject) => sum + scores[subject].s, 0);
+  const totalNormalized = SUBJECT_ORDER.reduce((sum, subject) => sum + scores[subject].normalized, 0);
   const max = TOTAL_QUESTIONS * MARKS_CORRECT;
-  const scorePct = max ? Math.max(0, (total / max) * 100) : 0;
+  const scorePct = max ? Math.max(0, (totalNormalized / max) * 100) : 0;
   const correctTotal = SUBJECT_ORDER.reduce((sum, subject) => sum + scores[subject].c, 0);
   const wrongTotal = SUBJECT_ORDER.reduce((sum, subject) => sum + scores[subject].w, 0);
   const accuracyPct = (correctTotal + wrongTotal)
@@ -529,7 +585,7 @@ function drawRing(scores) {
   animateRing({
     canvas: document.getElementById("scoreRing"),
     percent: scorePct,
-    displayValue: total,
+    displayValue: Math.round(totalNormalized),
     suffix: "/600",
     color: "#3b82f6",
     headerText: "Total marks",
@@ -636,7 +692,7 @@ function drawChart(scores) {
     data: {
       labels: SUBJECT_ORDER,
       datasets: [{
-        data: SUBJECT_ORDER.map((subject) => scores[subject].s),
+        data: SUBJECT_ORDER.map((subject) => Math.round(scores[subject].normalized)),
         backgroundColor: ["#f59e0b", "#3b82f6", "#10b981"]
       }]
     },

@@ -436,6 +436,9 @@ td.result-cancelled { color: var(--warn); font-weight: 600; }
 /* Summary table score column */
 .summary-table td:nth-child(2) { color: var(--accent); font-weight: 700; }
 
+/* Summary table normalized score column */
+.summary-table td:nth-child(4) { color: var(--accent); font-weight: 700; }
+
 /* ── Chart card ── */
 .chart-card {
   background: var(--surface);
@@ -518,6 +521,7 @@ td.result-cancelled { color: var(--warn); font-weight: 600; }
 #questionAnalysis {
   opacity: 0;
   transition: opacity .4s;
+  margin-top: 20px;
 }
 #charts.show,
 #questionAnalysis.show {
