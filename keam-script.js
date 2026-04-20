@@ -382,7 +382,7 @@ function renderSummaryTable(scores) {
     const accuracy = attempted ? Math.round((entry.c / attempted) * 100) : 0;
     const roundedScore = Math.round(entry.s);
     const roundedNormalized = Math.round(entry.normalized ?? entry.s);
-    const roundedBonus = Math.round(entry.bonus ?? 0);
+    const bonusQuestions = entry.cancelled ?? 0;
 
     totalRawScore += entry.s;
     totalNormalizedScore += (entry.normalized ?? entry.s);
@@ -394,12 +394,12 @@ function renderSummaryTable(scores) {
     tbody.innerHTML += `
       <tr>
         <td>${subject}</td>
-        <td>${roundedScore}</td>
-        <td>${roundedBonus}</td>
-        <td>${roundedNormalized}</td>
-        <td>${entry.c}</td>
-        <td>${entry.w}</td>
-        <td>${entry.u}</td>
+        <td class="score-col">${roundedScore}</td>
+        <td class="bonus-col">${bonusQuestions}</td>
+        <td class="normalized-col">${roundedNormalized}</td>
+        <td class="correct-col">${entry.c}</td>
+        <td class="wrong-col">${entry.w}</td>
+        <td class="skip-col">${entry.u}</td>
         <td>${accuracy}%</td>
       </tr>
     `;
@@ -410,17 +410,17 @@ function renderSummaryTable(scores) {
   const totalAccuracy = totalAttempted ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
   const roundedTotalRaw = Math.round(totalRawScore);
   const roundedTotalNormalized = Math.round(totalNormalizedScore);
-  const roundedTotalBonus = Math.round(totalBonus);
+  const totalBonusQuestions = SUBJECT_ORDER.reduce((sum, subject) => sum + ((scores[subject]?.cancelled ?? 0)), 0);
 
   tbody.innerHTML += `
     <tr style="font-weight: bold;">
       <td><strong>Total</strong></td>
-      <td><strong>${roundedTotalRaw}</strong></td>
-      <td><strong>${roundedTotalBonus}</strong></td>
-      <td><strong>${roundedTotalNormalized}</strong></td>
-      <td><strong>${totalCorrect}</strong></td>
-      <td><strong>${totalWrong}</strong></td>
-      <td><strong>${totalSkipped}</strong></td>
+      <td class="score-col"><strong>${roundedTotalRaw}</strong></td>
+      <td class="bonus-col"><strong>${totalBonusQuestions}</strong></td>
+      <td class="normalized-col"><strong>${roundedTotalNormalized}</strong></td>
+      <td class="correct-col"><strong>${totalCorrect}</strong></td>
+      <td class="wrong-col"><strong>${totalWrong}</strong></td>
+      <td class="skip-col"><strong>${totalSkipped}</strong></td>
       <td><strong>${totalAccuracy}%</strong></td>
     </tr>
   `;

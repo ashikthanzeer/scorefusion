@@ -433,11 +433,13 @@ td.result-wrong    { color: var(--danger);  font-weight: 600; }
 td.result-skip     { color: var(--muted); }
 td.result-cancelled { color: var(--warn); font-weight: 600; }
 
-/* Summary table score column */
-.summary-table td:nth-child(2) { color: var(--accent); font-weight: 700; }
-
-/* Summary table normalized score column */
-.summary-table td:nth-child(4) { color: var(--accent); font-weight: 700; }
+/* Summary table columns */
+.summary-table td.score-col      { color: var(--accent); font-weight: 700; }
+.summary-table td.normalized-col { color: var(--accent); font-weight: 700; }
+.summary-table td.correct-col    { color: var(--success); font-weight: 700; }
+.summary-table td.wrong-col      { color: var(--danger);  font-weight: 700; }
+.summary-table td.skip-col       { color: var(--warn);    font-weight: 700; }
+.summary-table td.bonus-col      { color: var(--accent); font-weight: 700; }
 
 /* ── Chart card ── */
 .chart-card {

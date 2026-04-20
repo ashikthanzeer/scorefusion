@@ -609,8 +609,12 @@ function render(result) {
     totalSkipped += res[s].u;
 
     tbody.innerHTML += `<tr>
-      <td>${s}</td><td>${res[s].s}</td><td>${res[s].c}</td>
-      <td>${res[s].w}</td><td>${res[s].u}</td><td>${acc}%</td>
+      <td>${s}</td>
+      <td class="score-col">${res[s].s}</td>
+      <td class="correct-col">${res[s].c}</td>
+      <td class="wrong-col">${res[s].w}</td>
+      <td class="skip-col">${res[s].u}</td>
+      <td>${acc}%</td>
     </tr>`;
   });
 
