@@ -556,7 +556,6 @@ function getSubjectByQuestion(questionNo) {
 function renderResult(result, parsedResponses, shiftConfig) {
   lastResult = result;
 
-  renderBanner(parsedResponses, shiftConfig);
   renderSummaryTable(result.scores);
   renderQuestionTable(result.details);
   drawRing(result.scores, result.maxMarks || 600);
@@ -577,20 +576,12 @@ function renderResult(result, parsedResponses, shiftConfig) {
 
 function renderBanner(parsedResponses, shiftConfig) {
   const banner = document.getElementById("parseBanner");
-  const invalidCount = parsedResponses.invalidLines.length;
-  const duplicateCount = parsedResponses.duplicateQuestions.length;
-  const attemptedCount = parsedResponses.validCount;
-  const cancelledCount = (shiftConfig.cancelledQuestions || []).length;
   const sourceLine = shiftConfig.sourceUrl
     ? `<p>Source: <a href="${shiftConfig.sourceUrl}" target="_blank" rel="noopener noreferrer">official final answer key PDF</a></p>`
     : "";
 
   banner.innerHTML = `
-    <p class="info-banner-title">Analysis Summary</p>
     <p><strong>${shiftConfig.label}</strong></p>
-    <p>Parsed ${attemptedCount} valid response line${attemptedCount === 1 ? "" : "s"}.</p>
-    <p>Ignored ${invalidCount} invalid line${invalidCount === 1 ? "" : "s"} and replaced ${duplicateCount} duplicate entr${duplicateCount === 1 ? "y" : "ies"} with the latest answer.</p>
-    <p>${cancelledCount} question${cancelledCount === 1 ? "" : "s"} marked cancelled in the official key are excluded from scoring.</p>
     ${sourceLine}
   `;
   banner.style.display = "block";
@@ -953,17 +944,21 @@ function persistFormState() {
 }
 
 function restoreFormState() {
+  let shift = "";
+  let responseInput = "";
   const storedState = localStorage.getItem(FORM_STORAGE_KEY) || localStorage.getItem(LEGACY_FORM_STORAGE_KEY);
-  if (!storedState) return;
-
-  try {
-    const formState = JSON.parse(storedState);
-    document.getElementById("shift").value = formState.shift || "";
-    document.getElementById("responseInput").value = formState.responseInput || "";
-  } catch (error) {
-    console.error("Failed to restore KEAM form state:", error);
-    localStorage.removeItem(FORM_STORAGE_KEY);
+  if (storedState) {
+    try {
+      const formState = JSON.parse(storedState);
+      shift = formState.shift || "";
+      responseInput = formState.responseInput || "";
+    } catch (error) {
+      console.error("Failed to restore KEAM form state:", error);
+      localStorage.removeItem(FORM_STORAGE_KEY);
+    }
   }
+  document.getElementById("shift").value = shift;
+  document.getElementById("responseInput").value = responseInput;
 }
 
 function restoreResult() {
