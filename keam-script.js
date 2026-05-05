@@ -71,7 +71,7 @@ const KEAM_SHIFT_DATA = {
     "status": "ready",
     "note": "Official provisional answer key loaded from 17_4_ENG.pdf (Question Paper Code: 5/2026/OL).",
     "sourceUrl": "https://cee.kerala.gov.in/keam2026/list/anskey/17_4_ENG.pdf",
-    "cancelledQuestions": ["140"],
+    "cancelledQuestions": [140],
     "answers": {
       "1": "E", "2": "B", "3": "C", "4": "A", "5": "D", "6": "B", "7": "E", "8": "B", "9": "C", "10": "B",
       "11": "A", "12": "B", "13": "A", "14": "D", "15": "E", "16": "B", "17": "C", "18": "A", "19": "B", "20": "A",
@@ -96,7 +96,7 @@ const KEAM_SHIFT_DATA = {
     "status": "ready",
     "note": "Official provisional answer key loaded from BPH_18_04.pdf (Question Paper Code: 6/2026/OL).",
     "sourceUrl": "https://cee.kerala.gov.in/keam2026/list/anskey/BPH_18_04.pdf",
-    "cancelledQuestions": ["68"],
+    "cancelledQuestions": [68],
     "answers": {
       "1": "A", "2": "B", "3": "E", "4": "C", "5": "A", "6": "E", "7": "B", "8": "C", "9": "E", "10": "E",
       "11": "A", "12": "C", "13": "E", "14": "A", "15": "E", "16": "C", "17": "A", "18": "B", "19": "A", "20": "D",
@@ -139,7 +139,7 @@ const KEAM_SHIFT_DATA = {
     "status": "ready",
     "note": "Official provisional answer key loaded from BPH_19_04.pdf (Question Paper Code: 8/2026/OL).",
     "sourceUrl": "https://cee.kerala.gov.in/keam2026/list/anskey/BPH_19_04.pdf",
-    "cancelledQuestions": ["19","69"],
+    "cancelledQuestions": [19,69],
     "answers": {
       "1": "B", "2": "C", "3": "E", "4": "A", "5": "E", "6": "A", "7": "E", "8": "B", "9": "A", "10": "A",
       "11": "D", "12": "E", "13": "E", "14": "B", "15": "A", "16": "C", "17": "E", "18": "A", "20": "A",
@@ -157,7 +157,7 @@ const KEAM_SHIFT_DATA = {
     "status": "ready",
     "note": "Official provisional answer key loaded from 19_04_ENG.pdf (Question Paper Code: 9/2026/OL).",
     "sourceUrl": "https://cee.kerala.gov.in/keam2026/list/anskey/19_4_ENG.pdf",
-    "cancelledQuestions": ["129","144"],
+    "cancelledQuestions": [129,144],
     "answers": {
       "1": "D", "2": "E", "3": "C", "4": "A", "5": "D", "6": "B", "7": "D", "8": "D", "9": "E", "10": "C",
       "11": "D", "12": "B", "13": "D", "14": "B", "15": "E", "16": "D", "17": "E", "18": "D", "19": "C", "20": "A",
@@ -200,7 +200,7 @@ const KEAM_SHIFT_DATA = {
     "status": "ready",
     "note": "Official provisional answer key loaded from 20_4_ENG (1).pdf (Question Paper Code: 11/2026/OL).",
     "sourceUrl": "https://cee.kerala.gov.in/keam2026/list/anskey/20_4_ENG.pdf",
-    "cancelledQuestions": ["13","43","45","86","131","137","141"],
+    "cancelledQuestions": [13,43,45,86,131,137,141],
     "answers": {
       "1": "B", "2": "E", "3": "C", "4": "E", "5": "E", "6": "B", "7": "A", "8": "E", "9": "B", "10": "E",
       "11": "A", "12": "A", "14": "C", "15": "A", "16": "A", "17": "E", "18": "D", "19": "C", "20": "E",
@@ -223,7 +223,7 @@ const KEAM_SHIFT_DATA = {
     "status": "ready",
     "note": "Official provisional answer key loaded from 21_4_ENG.pdf (Question Paper Code: 12/2026/OL).",
     "sourceUrl": "https://cee.kerala.gov.in/keam2026/list/anskey/21_4_ENG.pdf",
-    "cancelledQuestions": ["15","57","76","82","125","141","147"],
+    "cancelledQuestions": [15,57,76,82,125,141,147],
     "answers": {
       "1": "D", "2": "A", "3": "C", "4": "E", "5": "B", "6": "A", "7": "D", "8": "E", "9": "B", "10": "A",
       "11": "B", "12": "E", "13": "C", "14": "C", "16": "D", "17": "A", "18": "E", "19": "B", "20": "E",
@@ -248,7 +248,7 @@ const KEAM_SHIFT_DATA = {
     "status": "ready",
     "note": "Official provisional answer key loaded from 22_04_ENG.pdf (Question Paper Code: 13/2026/OL).",
     "sourceUrl": "https://cee.kerala.gov.in/keam2026/list/anskey/22_04_ENG.pdf",
-    "cancelledQuestions": ["1","6","7","20","66","81","110"],
+    "cancelledQuestions": [1,6,7,20,66,81,110],
     "answers": {
       "2": "B", "3": "E", "4": "D", "5": "A", "8": "D", "9": "C", "10": "E",
       "11": "A", "12": "A", "13": "C", "14": "A", "15": "D", "16": "A", "17": "E", "18": "C", "19": "A",
