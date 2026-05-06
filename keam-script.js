@@ -733,7 +733,7 @@ function exportKeamPdf() {
 
     window.PdfExportUtils.addSection(pdf, "Summary");
     window.PdfExportUtils.addKeyValueLines(pdf, [
-      { label: "Total Normalized Score", value: `${Math.round(totalNormalizedScore)}` },
+      { label: "Total Final Score", value: `${Math.round(totalNormalizedScore)}` },
       { label: "Total Accuracy", value: `${accuracy}%` }
     ]);
 
@@ -769,7 +769,7 @@ function exportKeamPdf() {
         { label: "Subject", width: 0.17 },
         { label: "Score", width: 0.12 },
         { label: "Bonus", width: 0.12 },
-        { label: "Norm. Score", width: 0.15 },
+        { label: "Final Score", width: 0.15 },
         { label: "Correct", width: 0.12 },
         { label: "Wrong", width: 0.12 },
         { label: "Skipped", width: 0.12 },
