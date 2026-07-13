@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f6fb" id="themeColorMeta">
+<title>NEET UG Analysis Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="page-header">
+    <div class="header-left">
+      <div class="logo" aria-hidden="true">
+        <img src="assets/nta-logo.png" alt="" class="header-logo-image">
+      </div>
+      <div class="header-text">
+        <h1>NEET UG</h1>
+        <p class="subtitle">Analysis Dashboard</p>
+      </div>
+    </div>
+    <button id="themeToggle" class="icon-btn" aria-label="Toggle dark/light mode">&#127769;</button>
+  </header>
+
+  <section class="card" aria-label="Exam controls">
+    <label class="field-label" for="shift">Exam Code</label>
+    <div class="select-wrap">
+      <select id="shift">
+        <option value="">Select Exam Code</option>
+        <option value="neet-2026-code-50">NEET 2026 - Code 50</option>
+        <option value="neet-2026-code-60">NEET 2026 - Code 60</option>
+        <option value="neet-2026-code-70">NEET 2026 - Code 70</option>
+        <option value="neet-2026-code-80">NEET 2026 - Code 80</option>
+      </select>
+      <span class="select-arrow" aria-hidden="true">&#9662;</span>
+    </div>
+
+    <label class="field-label" style="margin-top:14px;" for="htmlFile">Response Sheet (HTML)</label>
+    <div class="drop-zone" id="dropZone" role="button" tabindex="0"
+         aria-label="Click or drag to upload NEET response sheet HTML file">
+      <div class="drop-icon" aria-hidden="true">&#128196;</div>
+      <span id="dropText">Tap to choose or drag &amp; drop HTML</span>
+      <input type="file" id="htmlFile" accept=".html,.htm" aria-label="Upload NEET response HTML file">
+    </div>
+  </section>
+
+  <button id="analyzeBtn" class="btn-primary" type="button">
+    <span id="analyzeBtnText">Analyze</span>
+    <span id="analyzeBtnSpinner" class="spinner" aria-hidden="true" hidden></span>
+  </button>
+
+  <div id="resultsSection" style="display:none;">
+    <div id="scoreRingContainer" class="rings-row">
+      <div class="ring-card">
+        <canvas id="scoreRing" width="200" height="110" aria-label="Score ring chart"></canvas>
+        <div id="ringText" class="ring-text"></div>
+      </div>
+      <div class="ring-card">
+        <canvas id="accuracyRing" width="200" height="110" aria-label="Accuracy ring chart"></canvas>
+        <div class="ring-text" id="accuracyText"></div>
+      </div>
+    </div>
+
+    <div class="table-scroll" role="region" aria-label="Subject-wise score summary">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Score</th>
+            <th>&#10004;</th>
+            <th>&#10008;</th>
+            <th>-</th>
+            <th>Acc.</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="center-row action-row">
+      <button id="exportPdfBtn" class="btn-secondary" type="button">Print Analysis</button>
+      <button id="clearDataBtn" class="btn-danger" type="button">Clear data</button>
+    </div>
+  </div>
+
+  <div id="charts" class="chart-card" style="display:none;">
+    <p class="chart-title">Score Distribution</p>
+    <div class="chart-wrap">
+      <canvas id="scoreChart" aria-label="Score distribution pie chart"></canvas>
+    </div>
+  </div>
+
+  <div id="questionAnalysis" style="display:none;">
+    <h2 class="section-heading">Question-Level Analysis</h2>
+    <div class="table-scroll" role="region" aria-label="Question-by-question analysis">
+      <table id="detailTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>QID</th>
+            <th>Answered</th>
+            <th>Correct</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="pdf-export.js"></script>
+<script src="neet-script.js"></script>
+</body>
+</html>
