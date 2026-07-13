@@ -1120,9 +1120,17 @@ function renderNeetResult(result) {
     <td><strong>${totalWrong}</strong></td><td><strong>${totalSkipped}</strong></td><td><strong>${overallAccuracy}%</strong></td>
   </tr>`;
 
-  document.getElementById('resultsSection').style.display = 'block';
-  document.getElementById('charts').style.display = 'block';
-  document.getElementById('questionAnalysis').style.display = 'block';
+  const resultsSection = document.getElementById('resultsSection');
+  const charts = document.getElementById('charts');
+  const questionAnalysis = document.getElementById('questionAnalysis');
+
+  resultsSection.style.display = 'block';
+  charts.style.display = 'block';
+  questionAnalysis.style.display = 'block';
+
+  resultsSection.classList.add('visible');
+  charts.classList.add('show');
+  questionAnalysis.classList.add('show');
 
   renderQuestionAnalysis(result.details || []);
   try {
@@ -1234,8 +1242,16 @@ function drawRing(result) {
 }
 
 function drawChart(result) {
-  if (!window.Chart) return;
-  const ctx = document.getElementById('scoreChart').getContext('2d');
+  if (!window.Chart) {
+    console.warn('Chart.js not loaded yet. Skipping NEET chart render.');
+    return;
+  }
+  const chartCanvas = document.getElementById('scoreChart');
+  if (!chartCanvas) {
+    console.warn('NEET scoreChart canvas not found.');
+    return;
+  }
+  const ctx = chartCanvas.getContext('2d');
   if (window.scoreChartInstance) window.scoreChartInstance.destroy();
   window.scoreChartInstance = new Chart(ctx, {
     type: 'pie',
@@ -1254,9 +1270,18 @@ function clearNeetData() {
   localStorage.removeItem(STORAGE_KEY);
   _lastResult = null;
   _selectedNeetFile = null;
-  document.getElementById('resultsSection').style.display = 'none';
-  document.getElementById('charts').style.display = 'none';
-  document.getElementById('questionAnalysis').style.display = 'none';
+  const resultsSection = document.getElementById('resultsSection');
+  const charts = document.getElementById('charts');
+  const questionAnalysis = document.getElementById('questionAnalysis');
+
+  resultsSection.style.display = 'none';
+  charts.style.display = 'none';
+  questionAnalysis.style.display = 'none';
+
+  resultsSection.classList.remove('visible');
+  charts.classList.remove('show');
+  questionAnalysis.classList.remove('show');
+
   document.getElementById('tbody').innerHTML = '';
   document.querySelector('#detailTable tbody').innerHTML = '';
   document.getElementById('htmlFile').value = '';
