@@ -742,6 +742,7 @@ const MARKS_CORRECT = 4;
 const MARKS_WRONG = -1;
 const STORAGE_KEY = 'neetLastResult';
 let _lastResult = null;
+let _selectedNeetFile = null;
 
 function parseNeetHtml(htmlText) {
   const parser = new DOMParser();
@@ -927,6 +928,37 @@ function isRestorableNeetResult(result) {
   );
 }
 
+async function setSelectedNeetFile(file) {
+  _selectedNeetFile = file;
+  const dropText = document.getElementById('dropText');
+  dropText.textContent = `Selected: ${file.name}`;
+  dropText.style.color = 'var(--success)';
+  setNeetStatus('Response sheet selected. Detecting booklet code...');
+
+  try {
+    const shiftId = detectNeetBookletCode(await file.text());
+    if (shiftId) {
+      document.getElementById('shift').value = shiftId;
+      const label = document.querySelector(`#shift option[value="${shiftId}"]`)?.textContent || shiftId;
+      dropText.textContent = `Selected: ${file.name} - ${label}`;
+      setNeetStatus(`${label} detected. Ready to analyze.`, 'success');
+    } else {
+      setNeetStatus('Booklet code was not detected. Select the exam code manually.', 'error');
+    }
+  } catch (error) {
+    console.warn('Could not detect NEET booklet code:', error);
+    setNeetStatus('Could not read the selected file. Select the exam code manually and try Analyze.', 'error');
+  }
+}
+
+function setNeetStatus(message, type = '') {
+  const status = document.getElementById('neetStatus');
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle('status-error', type === 'error');
+  status.classList.toggle('status-success', type === 'success');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const htmlFile = document.getElementById('htmlFile');
   const dropZone = document.getElementById('dropZone');
@@ -940,6 +972,8 @@ window.addEventListener('DOMContentLoaded', () => {
   htmlFile.addEventListener('change', async () => {
     if (htmlFile.files?.[0]) {
       const file = htmlFile.files[0];
+      _selectedNeetFile = file;
+      setNeetStatus('Response sheet selected. Detecting booklet code...');
       dropText.textContent = '📎 ' + file.name;
       dropText.style.color = 'var(--success)';
       try {
@@ -947,14 +981,18 @@ window.addEventListener('DOMContentLoaded', () => {
         if (shiftId) {
           document.getElementById('shift').value = shiftId;
           const label = document.querySelector(`#shift option[value="${shiftId}"]`)?.textContent || shiftId;
+          setNeetStatus(`${label} detected. Ready to analyze.`, 'success');
           dropText.textContent = `📎 ${file.name} - ${label}`;
         }
       } catch (error) {
         console.warn('Could not detect NEET booklet code:', error);
+        setNeetStatus('Could not auto-detect the booklet code. Select the exam code manually.', 'error');
       }
     } else {
+      _selectedNeetFile = null;
       dropText.textContent = 'Tap to choose or drag & drop HTML';
       dropText.style.color = '';
+      setNeetStatus('');
     }
   });
 
@@ -966,7 +1004,8 @@ window.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
     if (e.dataTransfer.files?.[0]) {
-      htmlFile.files = e.dataTransfer.files;
+      _selectedNeetFile = e.dataTransfer.files[0];
+      setSelectedNeetFile(e.dataTransfer.files[0]);
       dropText.textContent = '📎 ' + e.dataTransfer.files[0].name;
       dropText.style.color = 'var(--success)';
     }
@@ -1000,12 +1039,14 @@ function setAnalyzing(isAnalyzing) {
 
 async function analyzeNeet() {
   let shiftId = document.getElementById('shift').value;
-  const file = document.getElementById('htmlFile').files[0];
+  const file = _selectedNeetFile || document.getElementById('htmlFile').files[0];
   if (!file) {
-    return alert('Please select an exam code and upload the NEET HTML response sheet.');
+    setNeetStatus('Upload the NEET response sheet HTML file first.', 'error');
+    return;
   }
 
   setAnalyzing(true);
+  setNeetStatus('Analyzing response sheet...');
   try {
     const htmlText = await file.text();
     if (!shiftId) {
@@ -1013,12 +1054,15 @@ async function analyzeNeet() {
       if (shiftId) document.getElementById('shift').value = shiftId;
     }
     if (!shiftId) {
-      alert('Please select an exam code. I could not auto-detect it from this response sheet.');
+      setNeetStatus('Select an exam code. I could not auto-detect it from this response sheet.', 'error');
       return;
     }
 
     const answerKey = ANSWER_KEYS[shiftId];
-    if (!answerKey) return alert('Answer key missing for this exam code.');
+    if (!answerKey) {
+      setNeetStatus('Answer key missing for the selected exam code.', 'error');
+      return;
+    }
 
     const responses = parseNeetHtml(htmlText);
     if (!responses.length) {
@@ -1032,9 +1076,10 @@ async function analyzeNeet() {
     _lastResult = result;
     renderNeetResult(result);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
+    setNeetStatus(`Analysis complete: ${result.totalScore} / ${result.totalMarks}`, 'success');
   } catch (error) {
     console.error('NEET analysis failed:', error);
-    alert('Failed to analyze the NEET response HTML. Please check the file and try again.');
+    setNeetStatus(error.message || 'Failed to analyze the NEET response HTML. Please check the file and try again.', 'error');
   } finally {
     setAnalyzing(false);
   }
@@ -1079,9 +1124,17 @@ function renderNeetResult(result) {
   document.getElementById('charts').style.display = 'block';
   document.getElementById('questionAnalysis').style.display = 'block';
 
-  drawRing(result);
-  drawChart(result);
   renderQuestionAnalysis(result.details || []);
+  try {
+    drawRing(result);
+  } catch (error) {
+    console.warn('NEET score rings could not be rendered:', error);
+  }
+  try {
+    drawChart(result);
+  } catch (error) {
+    console.warn('NEET chart could not be rendered:', error);
+  }
 }
 
 function renderQuestionAnalysis(details) {
@@ -1181,6 +1234,7 @@ function drawRing(result) {
 }
 
 function drawChart(result) {
+  if (!window.Chart) return;
   const ctx = document.getElementById('scoreChart').getContext('2d');
   if (window.scoreChartInstance) window.scoreChartInstance.destroy();
   window.scoreChartInstance = new Chart(ctx, {
@@ -1199,6 +1253,7 @@ function drawChart(result) {
 function clearNeetData() {
   localStorage.removeItem(STORAGE_KEY);
   _lastResult = null;
+  _selectedNeetFile = null;
   document.getElementById('resultsSection').style.display = 'none';
   document.getElementById('charts').style.display = 'none';
   document.getElementById('questionAnalysis').style.display = 'none';
@@ -1207,6 +1262,7 @@ function clearNeetData() {
   document.getElementById('htmlFile').value = '';
   document.getElementById('dropText').textContent = 'Tap to choose or drag & drop HTML';
   document.getElementById('dropText').style.color = '';
+  setNeetStatus('');
 }
 
 function restoreNeetData() {

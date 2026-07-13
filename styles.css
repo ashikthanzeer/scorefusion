@@ -275,6 +275,22 @@ body {
 .btn-primary:active { transform: scale(.98); }
 .btn-primary:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 
+.form-status {
+  min-height: 22px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: .9rem;
+  text-align: center;
+}
+
+.form-status.status-error {
+  color: var(--danger);
+}
+
+.form-status.status-success {
+  color: var(--success);
+}
+
 /* ── Danger button ── */
 .btn-danger {
   padding: 9px 20px;

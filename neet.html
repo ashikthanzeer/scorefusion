@@ -9,8 +9,8 @@
 <meta name="theme-color" content="#f4f6fb" id="themeColorMeta">
 <title>NEET UG Analysis Dashboard</title>
 <link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -55,6 +55,7 @@
     <span id="analyzeBtnText">Analyze</span>
     <span id="analyzeBtnSpinner" class="spinner" aria-hidden="true" hidden></span>
   </button>
+  <p id="neetStatus" class="form-status" role="status" aria-live="polite"></p>
 
   <div id="resultsSection" style="display:none;">
     <div id="scoreRingContainer" class="rings-row">
