@@ -785,6 +785,14 @@ function parseNeetHtml(htmlText) {
   return results;
 }
 
+function detectNeetBookletCode(htmlText) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlText, 'text/html');
+  const paperSpan = doc.querySelector('span[id$="lblpaper"]');
+  const code = paperSpan?.textContent?.trim();
+  return ANSWER_KEYS[`neet-2026-code-${code}`] ? `neet-2026-code-${code}` : '';
+}
+
 function getChosenOptionIdFromTable(table, answerText) {
   if (!table) return answerText && answerText !== '-' ? answerText : null;
   const inputs = Array.from(table.querySelectorAll('input[type="checkbox"]'));
@@ -929,10 +937,21 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('exportPdfBtn')?.addEventListener('click', exportNeetPdf);
   document.getElementById('clearDataBtn')?.addEventListener('click', clearNeetData);
 
-  htmlFile.addEventListener('change', () => {
+  htmlFile.addEventListener('change', async () => {
     if (htmlFile.files?.[0]) {
-      dropText.textContent = '📎 ' + htmlFile.files[0].name;
+      const file = htmlFile.files[0];
+      dropText.textContent = '📎 ' + file.name;
       dropText.style.color = 'var(--success)';
+      try {
+        const shiftId = detectNeetBookletCode(await file.text());
+        if (shiftId) {
+          document.getElementById('shift').value = shiftId;
+          const label = document.querySelector(`#shift option[value="${shiftId}"]`)?.textContent || shiftId;
+          dropText.textContent = `📎 ${file.name} - ${label}`;
+        }
+      } catch (error) {
+        console.warn('Could not detect NEET booklet code:', error);
+      }
     } else {
       dropText.textContent = 'Tap to choose or drag & drop HTML';
       dropText.style.color = '';
@@ -980,18 +999,27 @@ function setAnalyzing(isAnalyzing) {
 }
 
 async function analyzeNeet() {
-  const shiftId = document.getElementById('shift').value;
+  let shiftId = document.getElementById('shift').value;
   const file = document.getElementById('htmlFile').files[0];
-  if (!shiftId || !file) {
+  if (!file) {
     return alert('Please select an exam code and upload the NEET HTML response sheet.');
   }
-
-  const answerKey = ANSWER_KEYS[shiftId];
-  if (!answerKey) return alert('Answer key missing for this exam code.');
 
   setAnalyzing(true);
   try {
     const htmlText = await file.text();
+    if (!shiftId) {
+      shiftId = detectNeetBookletCode(htmlText);
+      if (shiftId) document.getElementById('shift').value = shiftId;
+    }
+    if (!shiftId) {
+      alert('Please select an exam code. I could not auto-detect it from this response sheet.');
+      return;
+    }
+
+    const answerKey = ANSWER_KEYS[shiftId];
+    if (!answerKey) return alert('Answer key missing for this exam code.');
+
     const responses = parseNeetHtml(htmlText);
     if (!responses.length) {
       throw new Error('No NEET question rows were found in the uploaded HTML file.');
