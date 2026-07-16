@@ -1,4 +1,5 @@
-// ─── Answer Keys ─────────────────────────────────────────────────────────────
+// Answer Keys
+// Source: 20260716131467523.pdf (official final answer key for booklet codes 50/60/70/80)
 const ANSWER_KEYS = {
   "neet-2026-code-50": {
     "001": { correctAnswerId: "4", subject: "Physics" },
